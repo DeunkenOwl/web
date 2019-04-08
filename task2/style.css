@@ -9,16 +9,18 @@ body {
 
 }
 
-#adbar {
-
-	display: table;
-}
-
-img {
+.ad {
 
 	width: 50%;
 	height: auto;
 
+}
+
+#selfi {
+
+	width: 10%;
+	height: auto;
+	float: left;
 }
 
 #nav {
@@ -47,6 +49,7 @@ img {
 }
 
 #middle {
+	text-align: left;
 	border-right: 1px solid black;
 	border-left: 1px solid black;
 	padding: 1%;
@@ -56,8 +59,8 @@ img {
 }
 
 #footer {
-	
-	float: left;
+
+	clear: both;
 	border-top: 1px solid black;
 	border-bottom: 1px solid black;
 	width: 100%;
