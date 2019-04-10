@@ -24,28 +24,42 @@ body {
     border-bottom: 1px solid black;
 }
 
-.menu ul{
+.menu:hover {
+	cursor: pointer;
+}
+
+.submenu {
+	position: relative;
+	display:none;
+	cursor: pointer;
+}
+
+.menu:hover .submenu{
+	display: inline-block;
+}
+
+.submenu ul{
 	width: 100%;
 	position: absolute;
 	display: none;
 	list-style-type: none;
 	right: 0px;
-	top: 4px;
+	top: 100%;
 }
 
-.menu ul li{
+.submenu ul li{
 	background: white;
 	border-left: 1px solid black;
 	border-right: 1px solid black;
 	border-top: 1px solid black;
 }
 
-.menu ul .bottom{
+.submenu ul .bottom{
 	background: white;
 	border: 1px solid black;
 }
 
-.menu:hover ul{
+.submenu:hover ul{
 	display: block;
 }
 
