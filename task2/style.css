@@ -8,6 +8,12 @@ body {
 
 }
 
+.autor {
+	font-style: italic;
+	font-weight: bolder;
+	font-size: larger;
+}
+
 .menu {
 	position: relative;
 	float: left;
@@ -101,4 +107,17 @@ body {
 	height: 5%;
 	bottom: 0px;
 	text-align: right;
+}
+
+
+@media print {
+	#nav {display: none;}
+	#left {display: none;}
+	#right {display: none;}
+	#footer {display: none;}
+	#middle{
+		border: none;
+		width:auto;
+		height:auto;
+	}
 }
