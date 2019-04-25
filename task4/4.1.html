@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> test </title>
+	<script type="text/javascript" src="script4.1.js"></script>
+</head>
+<body>
+	<p> Площадь квадрата </p>
+	<form action="" method="post" name="square" id="square">
+		<input type="number" name="width" id="width" placeholder="Ширина квадрата">
+		<input type="button" onclick="squareS(document.getElementById('square'))" name="submit" value="Ввод">
+	</form>
+	
+	<p> Площадь круга </p>
+	<form action="" method="post" name="circle" id="circle">
+		<input type="text" name="radius" id="radius" placeholder="Радиус круга">
+		<input type="button" onclick="circleS(document.getElementById('circle'))" name="submit" value="Ввод">
+	</form>
+
+	<p> Площадь эллипса </p>
+	<form action="" method="post" name="ellips" id="ellips">
+		<input type="text" name="mAxis" id="mAxis" placeholder="Малая ось">
+		<input type="text" name="bAxis" id="bAxis" placeholder="Большая ось">
+		<input type="button" onclick="ellipsS(document.getElementById('ellips'))" name="submit" value="Ввод">
+	</form>
+
+	<p> Площадь параллелограмма </p>
+	<form action="" method="post" name="parr" id="parr">
+		<input type="text" name="h" id="h" placeholder="Высота">
+		<input type="text" name="basis" id="basis" placeholder="Основа">
+		<input type="button" onclick="parrS(document.getElementById('parr'))" name="submit" value="Ввод">
+	</form>
+
+	<p> Площадь трапеции </p>
+	<form action="" method="post" name="trapec" id="trapec">
+		<input type="text" name="h" id="h" placeholder="Высота">
+		<input type="text" name="basis0" id="basis0" placeholder="Основа">
+		<input type="text" name="basis1" id="basis1" placeholder="Вторая основа">
+		<input type="button" onclick="trapecS(document.getElementById('trapec'))" name="submit" value="Ввод">
+	</form>
+
+	<p> Площадь треугольника </p>
+	<form action="" method="post" name="triangle" id="triangle">
+		<input type="text" name="h" id="h" placeholder="Высота">
+		<input type="text" name="basis" id="basis" placeholder="Основа">
+		<input type="button" onclick="triangleS(document.getElementById('triangle'))" name="submit" value="Ввод">
+	</form>
+</body>
+</html>
