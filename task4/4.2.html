@@ -24,9 +24,38 @@
 	</form>
 	
 	<p> Найти произведение (Х + 2) * (Х^2 + 3) * … * (Х ^ X + X + 1) </p>
-	<form action="" method="post" name="v.1" id="v.1">
+	<form action="" method="post" name="calc.1" id="calc.1">
 		<input type="number" name="X" id="X" placeholder="X">
-		<input type="button" onclick="v1(document.getElementById('v.1'))" name="submit" value="Ввод">
+		<input type="button" onclick="calc1(document.getElementById('calc.1'))" name="submit" value="Ввод">
+	</form>
+
+	<p> Найти сумму первых двадцати элементов последовательности X, X/3, X/5, ... .  </p>
+	<form action="" method="post" name="calc.2" id="calc.2">
+		<input type="number" name="X" id="X" placeholder="X">
+		<input type="button" onclick="calc2(document.getElementById('calc.2'))" name="submit" value="Ввод">
+	</form>
+
+	<p> Найти частное (3+6+…+33)/(I+2+З...10). </p>
+	<form action="" method="post" name="calc.3" id="calc.3">
+		<input type="button" onclick="calc3(document.getElementById('calc.3'))" name="submit" value="Ввод">
+	</form>
+
+	<p> Найти произведение (1+2+3+…+40)(5+10+15+...+70) </p>
+	<form action="" method="post" name="calc.4" id="calc.4">
+		<input type="button" onclick="calc4(document.getElementById('calc.4'))" name="submit" value="Ввод">
+	</form>
+
+	<p> Дана последовательность Х^2 / 2, Х^2 / 6, Х^2 / 10, ... 
+		Найти сумму элементов, абсолютные величины которых превышают 0,0005. Примечание: Х < 1. </p>
+	<form action="" method="post" name="calc.5" id="calc.5">
+		<input type="number" name="X" id="X" placeholder="X">
+		<input type="button" onclick="calc5(document.getElementById('calc.5'))" name="submit" value="Ввод">
+	</form>
+
+	<p> Дана последовательность Х, Х^5 / 4, Х^9 / 8,Х^13 / 12, …. Найти и напечатать сумму абсолютных величин элементов с 3 по 15-тый. </p>
+	<form action="" method="post" name="calc.6" id="calc.6">
+		<input type="number" name="X" id="X" placeholder="X">
+		<input type="button" onclick="calc6(document.getElementById('calc.6'))" name="submit" value="Ввод">
 	</form>
 
 </body>
