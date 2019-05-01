@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> test </title>
+	<script type="text/javascript">
+		function func(form) {
+			var arr = [];
+			for (var i = 0; i < 7; i++) {
+				arr[i] = [];
+				for (var j = 0; j < 9; j++) {
+					arr[i][j] = parseInt(Math.random() * (50 - 0) + 0);
+				}
+			}
+			var x;
+			for (var i = 0; i < 7; i++) {
+				for (var k = 8; k >= 0; k--) {
+					for (var j = 0; j < k; j++) {
+						if (arr[i][j] > arr[i][j + 1]) {
+							x = arr[i][j];
+							arr[i][j] = arr[i][j + 1];
+							arr[i][j + 1] = x;
+						}
+					}
+				}
+			}
+			x = "";
+			for (var i = 0; i < 7; i++) {
+				for (var j = 0; j < 9; j++) {
+					x = x + arr[i][j] + ' ';
+				}
+				console.log(x);
+				x = "";
+			}
+			
+		}
+	</script>
+</head>
+<body>
+	<p> Матрица М содержит 7 строк, 9 столбцов. Расположить эле­менты в каждой строке в порядке возрастания. </p>
+	<form action="" method="post" name="funcF" id="funcF">
+		<input type="button" onclick="func(document.getElementById('funcF'))" name="submit" value="Пуск">
+	</form>
+
+</body>
+</html>
