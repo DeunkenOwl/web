@@ -116,17 +116,33 @@ function calc5(form) {
 function calc6(form) {
 	var x = Number.parseInt(form.X.value);
 	var arr = new Array(16);
-	//alert(x);
 	if (x > 0) {
 		for (var i = 1; i < 16; i++) {
 			arr[i] = x ^ (1 + i * 4) / (4 * i);
-			//alert(arr[i]);
 		}
 		x = 0;
 		for (var i = 3; i < 16; i++) {
 			x += arr[i];
 		}
 		alert(x);
+	} else {
+		alert("Неправильный ввод");
+	}
+}
+
+function calc7(form) {
+	var x = Number.parseInt(form.X.value);
+	var out = 1;
+	var d;
+	if (x > 0) {
+		for (var i = 1; i <= x; i++) {
+			d = 1
+			for (var j = 2; j <= i * 2; j++) {
+				d = d * j;
+			}
+			out = out + (Math.pow(-1, i) * Math.pow(x, i * 2) / d);
+		}
+		alert("cosx = " + out)
 	} else {
 		alert("Неправильный ввод");
 	}
