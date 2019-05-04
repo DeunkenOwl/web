@@ -6,22 +6,103 @@
 </head>
 <body>
 
-	<script type="text/javascript" src="script.js"></script>
 	<script type="text/javascript" src="jquery-3.4.1.min.js"></script>
+	
 	<script type="text/javascript">
+		var m = [
+			{
+				text: "Животные",
+				childs: [
+				{
+					text: "Млекопитающие",
+					childs: [
+					{
+						text: "Коровы",
+						childs: []
+					},
+					{
+						text: "Ослы",
+						childs: []
+					},
+					{
+						text: "Собаки",
+						childs: []
+					},
+					{
+						text: "Тигры",
+						childs: []
+					}
+					]
+				},
+				{
+					text: "Другие",
+					childs: [
+					{
+						text: "Змеи",
+						childs: []
+					},
+					{
+						text: "Птицы",
+						childs: []
+					},
+					{
+						text: "Ящирицы",
+						childs: []
+					}
+					]
+				}
+				]
+			},
+			{
+				text: "Рыбы",
+				childs: [
+				{
+					text: "Аквариумные",
+					childs: [
+					{
+						text: "Гуппи",
+						childs: []
+					},
+					{
+						text: "Скалярии",
+						childs: []
+					}
+					]
+				},
+				{
+					text: "Морские",
+					childs: [
+					{
+						text: "Морская форель",
+						childs: []
+					}
+					]
+				}
+				]
+			}
+			];
+
+		function addItem(item, par) {
+			if (item.length > 0) {
+				par.append("<ul></ul>");
+				for(var i = 0; i < item.length; i++) {
+					par.children("ul").append("<li><div>" + item[i].text + "</div></li>");
+					addItem(item[i].childs, par.children("ul").children("li:last-child"))
+				}
+			}
+		}
+
+		addItem(m, $("body"));
 
 		$("li > div").on("click", function(event) {
-			if ($(this).parent().children("ul").hasClass("hidden")){
+			if ($(this).parent().children("ul").attr("style") == "display: none;"){
 				$(this).parent().children("ul").show("slow", "swing");
-				$(this).parent().children("ul").removeClass("hidden");
 			}
 			else {
 				$(this).parent().children("ul").hide("slow", "swing");
-				$(this).parent().children("ul").addClass("hidden");
 			}
 		});
 
-	</script>
-
+		</script>
 </body>
 </html>
