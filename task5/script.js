@@ -75,7 +75,7 @@ function addItem(item, parent) {
  var ul = document.createElement("ul");
  for(var i = 0; i < item.length; i++) {
   var li = document.createElement("li");
-  li.innerHTML = item[i].text;
+  li.innerHTML = "<div>" + item[i].text + "</div>";
   if (item[i].childs.length > 0) {
     addItem(item[i].childs, li);
   }
