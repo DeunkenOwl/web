@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>jQuery</title>
+	<title>5.3</title>
 </head>
 <body>
 
@@ -101,6 +101,10 @@
 			else {
 				$(this).parent().children("ul").hide("slow", "swing");
 			}
+		});
+
+		$("li").each(function () {
+			console.log($(this).find("div:first").text(),$(this).find("li").length);
 		});
 
 		</script>
