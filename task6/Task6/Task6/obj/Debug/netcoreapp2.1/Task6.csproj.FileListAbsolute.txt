@@ -29,3 +29,4 @@ C:\Users\User\Desktop\wep\task6\Task6\Task6\obj\Debug\netcoreapp2.1\Task6.csproj
 C:\Users\User\Desktop\wep\task6\Task6\Task6\obj\Debug\netcoreapp2.1\Razor\Views\Home\Index.g.cshtml.cs
 C:\Users\User\Desktop\wep\task6\Task6\Task6\obj\Debug\netcoreapp2.1\Razor\Views\Home\Self.g.cshtml.cs
 C:\Users\User\Desktop\wep\task6\Task6\Task6\obj\Debug\netcoreapp2.1\Razor\Views\Home\Verse.g.cshtml.cs
+C:\Users\User\Desktop\wep\task6\task6\Task6\obj\Debug\netcoreapp2.1\Razor\Views\hjk\Index.g.cshtml.cs

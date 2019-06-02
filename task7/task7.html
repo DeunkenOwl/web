@@ -1,0 +1,299 @@
+<html>
+<head>
+	<title>Canvas & Mootools</title>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mootools/1.6.0/mootools-core.js"></script>
+	<script type="text/javascript">
+		var canvas, ctx, balls, idTimer;
+		function getRandomInRange(min, max) {
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+		TBall = new Class({
+			initialize: function(pX,pY) {
+				this.posX = pX; //позиция шарика по X
+				this.posY = pY; //позиция шарика по Y
+				//цвет шарика, формируется случайным оьразом
+				this.colBall = 'rgb('+Math.floor(Math.random()*256)+','
+				+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+')';
+				// радиус шарика, случайное число от 5 до 30
+				this.rBall = 5+Math.random()*25;
+				// случайная скорость шарика
+				this.speed = 2+Math.random()*4;
+			},
+			posX: 0,
+			posY: 0,
+			colBall:"rgb(0,0,0)",
+			rBall: 0,
+			speed: 0,
+			// определяет направление движения
+			moveUp: false,
+			moveDown: false,
+			moveRight: false,
+			moveLeft: false,
+			colorBall: function(ctx){
+				// формируем градиентную заливку для шарика
+				with (this){
+					var gradient = ctx.createRadialGradient(posX+rBall/4,
+					posY-rBall/6, rBall/8, posX, posY, rBall);
+					gradient.addColorStop(0, '#fff');
+					gradient.addColorStop(0.85, colBall);
+					return gradient;
+				}
+			},
+			draw : function(ctx){
+				// рисуем шарик на canvas
+				with (this){
+					ctx.fillStyle = colorBall(ctx);
+					ctx.beginPath();
+					ctx.arc(posX, posY, rBall, 0, 2*Math.PI, false);
+					ctx.closePath();
+					ctx.fill();
+				}
+			},
+			changeCoordinates : function(ctx){
+				// двигаем шарик
+				with (this){
+					if (moveUp) {
+						posY = posY - speed;
+					}
+					if (moveDown) {
+						posY = posY + speed; 
+					}
+					if (moveRight) {
+						posX = posX + speed; 
+					}
+					if (moveLeft) {
+						posX = posX - speed; 
+					}
+				}
+			}
+		});
+		TBox = new Class({
+			
+		});
+		var moveUp = false;
+		var moveDown = false;
+		var moveLeft = false;
+		var moveRight = false;
+		var moveRandom = false;
+		var moveChaotic = false;
+		function drawBack(ctx,col1,col2,w,h){
+			// закрашиваем канвас градиентным фоном
+			ctx.save();
+			var g = ctx.createLinearGradient(0,0,0,h);
+			g.addColorStop(1,col1);
+			g.addColorStop(0,col2);
+			ctx.fillStyle = g;
+			ctx.fillRect(0,0,w,h);
+			ctx.restore();
+		}
+		// инициализация работы
+		function init(){
+			canvas = document.getElementById('canvas');
+			if (canvas.getContext){
+				ctx = canvas.getContext('2d');
+				//рисуем фон
+				drawBack(ctx,'#202020','#aaa',canvas.width,canvas.height);
+				//создаем 10 шариков, заноси их в массив и выводим на canvas
+				balls = [];
+				for (var i = 1; i<=10;i++){
+					var item = new TBall(10+Math.random()*(canvas.width-30),
+					10+Math.random()*(canvas.height-30));
+					item.draw(ctx);
+					balls.push(item);
+				}
+			}
+		}
+		// создаем новый шарик по щелчку мыши, добавляем его в массив шариков и рисуем его
+		function goInput(event){
+			var x = event.clientX;
+			var y = event.clientY;
+			var item = new TBall(x,y);
+			if (moveRandom) {
+				rand = getRandomInRange(0, 3);
+				if (rand == 0) {
+					item.moveUp = true;
+				}
+				else if (rand == 1) {
+					item.moveDown = true;
+				}
+				else if (rand == 2) {
+					item.moveLeft = true;
+				}
+				else if (rand == 3) {
+					item.moveRight = true;
+				}
+			}
+			if (moveUp) {
+				item.moveUp = true;
+			}
+			if (moveDown) {
+				item.moveDown = true;
+			}
+			if (moveRight) {
+				item.moveRight = true;
+			}
+			if (moveLeft) {
+				item.moveLeft = true;
+			}
+			item.draw(ctx);
+			balls.push(item);
+		}
+		function moveItems(){
+			//реализация движения шариков, находящихся в массиве balls
+			drawBack(ctx,'#202020','#aaa',canvas.width,canvas.height);
+			for (var i = 0; i < balls.length;i){
+				if (moveChaotic) {
+					balls[i].moveUp = false;
+					balls[i].moveDown = false;
+					balls[i].moveLeft = false;
+					balls[i].moveRight = false;
+					rand = getRandomInRange(0, 3);
+					if (rand == 0) {
+						balls[i].moveUp = true;
+					}
+					else if (rand == 1) {
+						balls[i].moveDown = true;
+					}
+					else if (rand == 2) {
+						balls[i].moveLeft = true;
+					}
+					else {
+						balls[i].moveRight = true;
+					}
+				}
+				balls[i].changeCoordinates();
+				balls[i].draw(ctx);
+				if ((balls[i].posX > canvas.width) || (balls[i].posX < 0) || (balls[i].posY > canvas.height) ||(balls[i].posY < 0)) 
+					balls.splice(i,1);
+				else 
+					i++;
+			}
+		}
+		function move(){
+			clearInterval(idTimer);
+			idTimer = setInterval('moveItems();',50);
+		}
+		
+		function setMoveUp(){
+			moveUp = true;
+			moveDown = false;
+			moveLeft = false;
+			moveRight = false;
+			moveRandom = false;
+			moveChaotic = false;
+			for (var i = 0; i < balls.length; i++){
+				balls[i].moveUp = true;
+				balls[i].moveDown = false;
+				balls[i].moveLeft = false;
+				balls[i].moveRight = false;
+			}
+			move();
+		}
+
+		function setMoveDown(){
+			moveUp = false;
+			moveDown = true;
+			moveLeft = false;
+			moveRight = false;
+			moveRandom = false;
+			moveChaotic = false;
+			for (var i = 0; i < balls.length; i++){
+				balls[i].moveUp = false;
+				balls[i].moveDown = true;
+				balls[i].moveLeft = false;
+				balls[i].moveRight = false;
+			}
+			move();
+		}
+
+		function setMoveLeft(){
+			moveUp = false;
+			moveDown = false;
+			moveLeft = true;
+			moveRight = false;
+			moveRandom = false;
+			moveChaotic = false;
+			for (var i = 0; i < balls.length; i++){
+				balls[i].moveUp = false;
+				balls[i].moveDown = false;
+				balls[i].moveLeft = true;
+				balls[i].moveRight = false;
+			}
+			move();
+		}
+
+		function setMoveRight(){
+			moveUp = false;
+			moveDown = false;
+			moveLeft = false;
+			moveRight = true;
+			moveRandom = false;
+			moveChaotic = false;
+			for (var i = 0; i < balls.length; i++){
+				balls[i].moveUp = false;
+				balls[i].moveDown = false;
+				balls[i].moveLeft = false;
+				balls[i].moveRight = true;
+			}
+			move();
+		}
+
+		function setMoveChaotic(){
+			moveUp = false;
+			moveDown = false;
+			moveLeft = false;
+			moveRight = false;
+			moveRandom = false;
+			moveChaotic = true;
+			move();
+		}
+
+		function setMoveRandom(){
+			moveUp = false;
+			moveDown = false;
+			moveLeft = false;
+			moveRight = false;
+			moveRandom = true;
+			moveChaotic = false;
+			var rand = 0;
+			for (var i = 0; i < balls.length; i++){
+				balls[i].moveUp = false;
+				balls[i].moveDown = false;
+				balls[i].moveLeft = false;
+				balls[i].moveRight = false;
+				rand = getRandomInRange(0, 3);
+				if (rand == 0) {
+					balls[i].moveUp = true;
+				}
+				else if (rand == 1) {
+					balls[i].moveDown = true;
+				}
+				else if (rand == 2) {
+					balls[i].moveLeft = true;
+				}
+				else {
+					balls[i].moveRight = true;
+				}
+			}
+			move();
+		}
+	</script>
+	<style type="text/css">
+		canvas { border: 1px solid blue; }
+	</style>
+</head>
+<body onload="init();">
+	<canvas id="canvas" width="600" height="400" onclick="goInput(event);">
+	</canvas>
+	<form>
+		<input type = "button" value = "Движение" onclick="move()">
+		<input type = "button" value = "Стоп" onclick="clearInterval(idTimer);">
+		<input type = "button" value = "Вверх" onclick="setMoveUp()">
+		<input type = "button" value = "Вниз" onclick="setMoveDown()">
+		<input type = "button" value = "Влево" onclick="setMoveLeft()">
+		<input type = "button" value = "Вправо" onclick="setMoveRight()">
+		<input type = "button" value = "Случайно" onclick="setMoveRandom()">
+		<input type = "button" value = "Хаотично" onclick="setMoveChaotic()">
+	</form>
+</body>
+</html>
