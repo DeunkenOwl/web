@@ -3,73 +3,259 @@
 	<title>Canvas & Mootools</title>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mootools/1.6.0/mootools-core.js"></script>
 	<script type="text/javascript">
-		var canvas, ctx, balls, idTimer;
+		var canvas, ctx, balls, idTimer, idAcceleration;
 		function getRandomInRange(min, max) {
 			return Math.floor(Math.random() * (max - min + 1)) + min;
 		}
-		TBall = new Class({
-			initialize: function(pX,pY) {
-				this.posX = pX; //позиция шарика по X
-				this.posY = pY; //позиция шарика по Y
-				//цвет шарика, формируется случайным оьразом
-				this.colBall = 'rgb('+Math.floor(Math.random()*256)+','
-				+Math.floor(Math.random()*256)+','+Math.floor(Math.random()*256)+')';
-				// радиус шарика, случайное число от 5 до 30
-				this.rBall = 5+Math.random()*25;
-				// случайная скорость шарика
-				this.speed = 2+Math.random()*4;
-			},
-			posX: 0,
-			posY: 0,
-			colBall:"rgb(0,0,0)",
-			rBall: 0,
-			speed: 0,
-			// определяет направление движения
-			moveUp: false,
-			moveDown: false,
-			moveRight: false,
-			moveLeft: false,
-			colorBall: function(ctx){
-				// формируем градиентную заливку для шарика
-				with (this){
-					var gradient = ctx.createRadialGradient(posX+rBall/4,
-					posY-rBall/6, rBall/8, posX, posY, rBall);
-					gradient.addColorStop(0, '#fff');
-					gradient.addColorStop(0.85, colBall);
-					return gradient;
+		function getRandomFloatInRange(min, max) {
+			return Math.random() * (max - min + 1) + min;
+		}
+
+		// класс Фигура
+		function TFigure(pX,pY, moveDir) {
+			this.posX = pX; //позиция фигуры по X
+			this.posY = pY; //позиция фигуры по Y
+			//цвет, формируется случайным образом
+			this.col = 'rgb('+getRandomInRange(100, 256)+','
+			+getRandomInRange(100, 256)+','+getRandomInRange(100, 256)+')';
+			// случайная скорость
+			this.speed = getRandomInRange(2, 6);
+			// ускорение
+			this.ac = getRandomInRange(1, 2);
+			// скорость увеличения
+			this.growSpeed = 1.005;
+			// тип фигуры
+			this.typeOfFig = "none";
+			// направления движения
+			this.moveUp = false;
+			this.moveDown = false;
+			this.moveRight = false;
+			this.moveLeft = false;
+			this.changeDir(moveDir);
+		};
+
+		TFigure.prototype.changeDir = function(dir) {
+			with (this) {
+				moveUp = false;
+				moveDown = false;
+				moveRight = false;
+				moveLeft = false;
+				if (dir == "up") {
+					moveUp = true;
 				}
-			},
-			draw : function(ctx){
-				// рисуем шарик на canvas
-				with (this){
-					ctx.fillStyle = colorBall(ctx);
-					ctx.beginPath();
-					ctx.arc(posX, posY, rBall, 0, 2*Math.PI, false);
-					ctx.closePath();
-					ctx.fill();
+				if (dir == "down") {
+					moveDown = true;
 				}
-			},
-			changeCoordinates : function(ctx){
-				// двигаем шарик
-				with (this){
-					if (moveUp) {
-						posY = posY - speed;
-					}
-					if (moveDown) {
-						posY = posY + speed; 
-					}
-					if (moveRight) {
-						posX = posX + speed; 
-					}
-					if (moveLeft) {
-						posX = posX - speed; 
-					}
+				if (dir == "right") {
+					moveRight = true;
+				}
+				if (dir == "left") {
+					moveLeft = true;
 				}
 			}
-		});
-		TBox = new Class({
-			
-		});
+		};
+
+		TFigure.prototype.changeCoordinates = function() {
+			with (this){
+				if (moveUp) {
+					posY -= speed;
+				}
+				if (moveDown) {
+					posY += speed; 
+				}
+				if (moveRight) {
+					posX += speed; 
+				}
+				if (moveLeft) {
+					posX -= speed; 
+				}
+			}
+		};
+
+		TFigure.prototype.accell = function() {
+			with (this) {
+				speed = speed + ac;
+			}
+		}
+
+		// класс шарика
+		function TBall(pX,pY, moveDir) {
+			//вызов конструктора родителя
+			TFigure.apply(this, arguments);
+			this.typeOfFig = "ball";
+			this.r = getRandomInRange(5,25);
+		};
+		// наследование от фигуры
+		TBall.prototype = Object.create(TFigure.prototype);
+
+		TBall.prototype.check_pop = function(){
+			// рисуем шарик на canvas
+			with (this){
+				if (r > 40) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+		};
+
+		TBall.prototype.grow = function(ctx){
+			with (this) {
+				r = r * growSpeed;
+			}
+		};
+
+		TBall.prototype.colorBall = function(ctx){
+			// формируем градиентную заливку для шарика
+			with (this){
+				var gradient = ctx.createRadialGradient(posX+r/4,
+					posY-r/6, r/8, posX, posY, r);
+				gradient.addColorStop(0, '#fff');
+				gradient.addColorStop(0.85, col);
+				return gradient;
+			}
+		},
+
+		TBall.prototype.draw = function(ctx){
+			// рисуем шарик на canvas
+			with (this){
+				ctx.fillStyle = colorBall(ctx);
+				ctx.beginPath();
+				ctx.arc(posX, posY, r, 0, 2*Math.PI, false);
+				ctx.closePath();
+				ctx.fill();
+			}
+		};
+
+		// класс прямоугольника
+		function TRec(pX,pY, moveDir) {
+			//вызов конструктора родителя
+			TFigure.apply(this, arguments);
+			this.typeOfFig = "rectangle";
+			this.w = getRandomInRange(10, 50);
+			this.h = getRandomInRange(10, 50);
+			this.x1 = pX - this.w / 2;
+			this.y1 = pY - this.h / 2;
+			this.x2 = pX + this.w / 2;
+			this.y2 = pY - this.h / 2;
+			this.x3 = pX + this.w / 2;
+			this.y3 = pY + this.h / 2;
+			this.x4 = pX - this.w / 2;
+			this.y4 = pY + this.h / 2;
+		};
+		// наследование от фигуры
+		TRec.prototype = Object.create(TFigure.prototype);
+
+		TRec.prototype.update_tops = function() {
+			with (this) {
+				x1 = posX - w / 2;
+				y1 = posY - h / 2;
+				x2 = posX + w / 2;
+				y2 = posY - h / 2;
+				x3 = posX + w / 2;
+				y3 = posY + h / 2;
+				x4 = posX - w / 2;
+				y4 = posY + h / 2;
+			}
+		}
+
+		//вырисовка прямоугольника
+		TRec.prototype.draw = function(ctx){
+			with (this){
+				ctx.fillStyle = col;
+				ctx.beginPath();
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(x2, y2);
+				ctx.lineTo(x3, y3);
+				ctx.lineTo(x4, y4);
+				ctx.lineTo(x1, y1);
+				ctx.fill();
+				ctx.closePath();
+			}
+		};
+		
+		TRec.prototype.check_pop = function(){
+			with (this){
+				if (w * h > 5000) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+		};
+
+		TRec.prototype.grow = function(){
+			with (this){
+				h = h * growSpeed;
+				w = w * growSpeed;
+			}
+		};
+
+		function TTri(pX,pY, moveDir) {
+			//вызов конструктора родителя
+			TFigure.apply(this, arguments);
+			this.typeOfFig = "triangle";
+			//угол наклона
+			this.fi = getRandomFloatInRange(0, 2 * Math.PI);
+			// отдаленность вершин
+			this.r = getRandomInRange(5, 25);
+			// координаты вершин
+			this.x1 = pX + this.r * Math.cos(this.fi);
+			this.y1 = pY + this.r * Math.sin(this.fi);
+			this.x2 = pX + this.r * Math.cos(this.fi + (2 * Math.PI / 3));
+			this.y2 = pY + this.r * Math.sin(this.fi + (2 * Math.PI / 3));
+			this.x3 = pX + this.r * Math.cos(this.fi + (4 * Math.PI / 3));
+			this.y3 = pY + this.r * Math.sin(this.fi + (4 * Math.PI / 3));
+
+		};
+
+		TTri.prototype = Object.create(TFigure.prototype);
+
+		TTri.prototype.check_pop = function(){
+			// рисуем шарик на canvas
+			with (this){
+				if (r > 40) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+		};
+
+		TTri.prototype.grow = function(){
+			// рисуем шарик на canvas
+			with (this){
+				r = r * growSpeed;
+			}
+		};
+
+		TTri.prototype.update_tops = function() {
+			with (this) {
+				x1 = posX + r * Math.cos(fi);
+				y1 = posY + r * Math.sin(fi);
+				x2 = posX + r * Math.cos(fi + (2 * Math.PI / 3));
+				y2 = posY + r * Math.sin(fi + (2 * Math.PI / 3));
+				x3 = posX + r * Math.cos(fi + (4 * Math.PI / 3));
+				y3 = posY + r * Math.sin(fi + (4 * Math.PI / 3));
+			}
+		}
+
+		TTri.prototype.draw = function(ctx) {
+			with (this){
+				ctx.fillStyle = col;
+				ctx.beginPath();
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(x2, y2);
+				ctx.lineTo(x3, y3);
+				ctx.lineTo(x1, y1);
+				ctx.fill();
+				ctx.closePath();
+			}
+		}
+
 		var moveUp = false;
 		var moveDown = false;
 		var moveLeft = false;
@@ -93,13 +279,28 @@
 				ctx = canvas.getContext('2d');
 				//рисуем фон
 				drawBack(ctx,'#202020','#aaa',canvas.width,canvas.height);
-				//создаем 10 шариков, заноси их в массив и выводим на canvas
-				balls = [];
+				//создаем 10 шариков, заносим их в массив
+				items = [];
 				for (var i = 1; i<=10;i++){
 					var item = new TBall(10+Math.random()*(canvas.width-30),
-					10+Math.random()*(canvas.height-30));
+					10+Math.random()*(canvas.height-30), "none");
+					item.changeCoordinates();
 					item.draw(ctx);
-					balls.push(item);
+					items.push(item);
+				}
+				for (var i = 1; i<=10;i++){
+					var item = new TRec(10+Math.random()*(canvas.width-30),
+					10+Math.random()*(canvas.height-30), "none");
+					item.changeCoordinates();
+					item.draw(ctx);
+					items.push(item);
+				}
+				for (var i = 1; i<=10;i++){
+					var item = new TTri(10+Math.random()*(canvas.width-30),
+					10+Math.random()*(canvas.height-30), "none");
+					item.changeCoordinates();
+					item.draw(ctx);
+					items.push(item);
 				}
 			}
 		}
@@ -107,172 +308,393 @@
 		function goInput(event){
 			var x = event.clientX;
 			var y = event.clientY;
-			var item = new TBall(x,y);
-			if (moveRandom) {
-				rand = getRandomInRange(0, 3);
-				if (rand == 0) {
-					item.moveUp = true;
-				}
-				else if (rand == 1) {
-					item.moveDown = true;
-				}
-				else if (rand == 2) {
-					item.moveLeft = true;
-				}
-				else if (rand == 3) {
-					item.moveRight = true;
-				}
-			}
+			var moveDir = "none";
 			if (moveUp) {
-				item.moveUp = true;
+				moveDir = "up";
 			}
 			if (moveDown) {
-				item.moveDown = true;
+				moveDir = "down";
 			}
 			if (moveRight) {
-				item.moveRight = true;
+				moveDir = "right";
 			}
 			if (moveLeft) {
-				item.moveLeft = true;
+				moveDir = "left";
 			}
+			if (moveRandom) {
+				var rand = getRandomInRange(0, 3);
+				if (rand == 0) {
+					moveDir = "up";
+				}
+				if (rand == 1) {
+					moveDir = "down";
+				}
+				if (rand == 2) {
+					moveDir = "right";
+				}
+				if (rand == 3) {
+					moveDir = "left";
+				}
+			}
+			var rand = getRandomInRange(0, 2);
+			if (rand == 0) {
+				var item = new TBall(x, y, moveDir);
+			}
+			else if (rand == 1) {
+				var item = new TRec(x, y, moveDir);
+			}
+			else {
+				var item = new TTri(x, y, moveDir);
+			}
+			
 			item.draw(ctx);
-			balls.push(item);
+			items.push(item);
 		}
+
+		function disableGlobalMoving() {
+			moveUp = false;
+			moveDown = false;
+			moveLeft = false;
+			moveRight = false;
+			moveRandom = false;
+			moveChaotic = false;
+		}
+
+		function f_clPoint_point_line(pX, pY, x0, y0, x1, y1) {
+			let answer = (y0 - y1) * pX + (x1 - x0) * pY;
+			answer += (x0 * y1 - x1 * y0);
+			answer = answer / (Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2))); 
+			return answer;
+		}
+
+		// функция для пересечения линий
+		function area (x1, y1, x2, y2, x3, y3) {
+			return (x2 - x1) * (y2 - y1) - (y2 - y1) * (x3 - x1);
+		}
+ 		
+ 		// функция для пересечения линий
+		function intersect_1 (a, b, c, d) {
+			if (a > b) {
+				let temp = a;
+				a = b;
+				b = temp;
+			}  //swap (a, b);
+			if (c > d) {
+				let temp = c;
+				c = d;
+				d = temp;
+			}  //swap (c, d);
+			return Math.max(a,c) <= Math.min(b,d);
+		}
+ 
+ 		function checkColl_line_line (x1, y1, x2, y2, x3, y3, x4, y4) {
+			return intersect_1 (x1, x2, x3, x4)
+				&& intersect_1 (y1, y2, y3, y4)
+				&& Math.round(area(x1, y1, x2, y2, x3, y3)) * Math.round(area(x1, y1, x2, y2 , x4, y4)) <= 0
+				&& area(x3, y3, x4, y4, x1, y1) * area(x3, y3, x4, y4, x2, y2) <= 0;
+		}
+
+		function checkColl_ball_ball (ball1, ball2) {
+			if (Math.sqrt(Math.pow(ball1.posX - ball2.posX, 2) + Math.pow(ball1.posY - ball2.posY, 2)) <= (ball1.r + ball2.r)){
+				return true;
+			}
+			else {
+				return false;
+			} 
+		}
+
+		function checkColl_ball_rect (ball, rect) {
+			// нахождение расстояния от центра шара до сторон прямоугольника
+			let a1 = f_clPoint_point_line(ball.posX, ball.posY, rect.x1, rect.y1, rect.x2, rect.y2);
+			let a2 = f_clPoint_point_line(ball.posX, ball.posY,  rect.x2, rect.y2, rect.x3, rect.y3);
+			let a3 = f_clPoint_point_line(ball.posX, ball.posY,  rect.x3, rect.y3, rect.x4, rect.y4);
+			let a4 = f_clPoint_point_line(ball.posX, ball.posY,  rect.x4, rect.y4, rect.x1, rect.y1);
+			// нахождение минимального расстояния и проверка на пересечение
+			let min = Math.min(a1, a2, a3, a4);
+			if (Math.abs(min) <= ball.r) {
+				return true;
+			}
+			else return false;
+		}
+
+		function checkColl_ball_tri (ball, tri) {
+			let a1 = f_clPoint_point_line(ball.posX, ball.posY, tri.x1, tri.y1, tri.x2, tri.y2);
+			let a2 = f_clPoint_point_line(ball.posX, ball.posY,  tri.x2, tri.y2, tri.x3, tri.y3);
+			let a3 = f_clPoint_point_line(ball.posX, ball.posY,  tri.x3, tri.y3, tri.x1, tri.y1);
+			let min = Math.min(a1, a2, a3);
+			if (Math.abs(min) <= ball.r) {
+				return true;
+			}
+			else return false;
+		}
+
+		function checkColl_rect_line (rect, x1, y1, x2, y2) {
+			if (checkColl_line_line(rect.x1, rect.y1, rect.x2, rect.y2, x1, y1, x2, y2)){
+				return true;
+			}
+			else if (checkColl_line_line(rect.x2, rect.y2, rect.x3, rect.y3, x1, y1, x2, y2)){
+				return true;
+			}
+			else if (checkColl_line_line(rect.x3, rect.y3, rect.x4, rect.y4, x1, y1, x2, y2)){
+				return true;
+			}
+			else if (checkColl_line_line(rect.x4, rect.y4, rect.x1, rect.y1, x1, y1, x2, y2)){
+				return true;
+			}
+			else return false;
+		}
+
+		function checkColl_rect_tri (rect, tri) {
+			if (checkColl_rect_line(rect, tri.x1, tri.y1, tri.x2, tri.y2)){
+				return true;
+			}
+			else if (checkColl_rect_line(rect, tri.x2, tri.y2, tri.x3, tri.y3)){
+				return true;
+			}
+			else if (checkColl_rect_line(rect, tri.x3, tri.y3, tri.x1, tri.y1)){
+				return true;
+			}
+			else return false;
+		}
+
+		function checkColl_tri_line (tri, x1, y1, x2, y2) {
+			if (checkColl_line_line(tri.x1, tri.y1, tri.x2, tri.y2, x1, y1, x2, y2)){
+				return true;
+			}
+			else if (checkColl_line_line(tri.x2, tri.y2, tri.x3, tri.y3, x1, y1, x2, y2)){
+				return true;
+			}
+			else if (checkColl_line_line(tri.x3, tri.y3, tri.x1, tri.y1, x1, y1, x2, y2)){
+				return true;
+			}
+			else return false;
+		}
+
+		function checkColl_tri_tri (tri1, tri2) {
+			if (checkColl_tri_line(tri1, tri2.x1, tri2.y1, tri2.x2, tri2.y2)){
+				return true;
+			}
+			else if (checkColl_tri_line(tri1, tri2.x2, tri2.y2, tri2.x3, tri2.y3)){
+				return true;
+			}
+			else if (checkColl_tri_line(tri1, tri2.x3, tri2.y3, tri2.x1, tri2.y1)){
+				return true;
+			}
+			else return false;
+		}
+
+		function checkColl_rect_line (rect, x1, y1, x2, y2) {
+			if (checkColl_line_line(rect.x1, rect.y1, rect.x2, rect.y2, x1, y1, x2, y2)){
+				return true;
+			}
+			else if (checkColl_line_line(rect.x2, rect.y2, rect.x3, rect.y3, x1, y1, x2, y2)){
+				return true;
+			}
+			else if (checkColl_line_line(rect.x3, rect.y3, rect.x4, rect.y4, x1, y1, x2, y2)){
+				return true;
+			}
+			else if (checkColl_line_line(rect.x4, rect.y4, rect.x1, rect.y1, x1, y1, x2, y2)){
+				return true;
+			}
+			else return false;
+		}
+
+		function checkColl_rect_rect (rect1, rect1) {
+			if (checkColl_tri_line(rect1, rect1.x1, rect1.y1, rect1.x2, rect1.y2)){
+				return true;
+			}
+			else if (checkColl_tri_line(rect1, rect1.x2, rect1.y2, rect1.x3, rect1.y3)){
+				return true;
+			}
+			else if (checkColl_tri_line(rect1, rect1.x3, rect1.y3, rect1.x4, rect1.y4)){
+				return true;
+			}
+			else if (checkColl_tri_line(rect1, rect1.x4, rect1.y4, rect1.x1, rect1.y1)){
+				return true;
+			}
+			else return false;
+		}
+
+		function check_collusion(item1, item2) {
+			let check;
+
+			if (item1.typeOfFig == "ball") {
+				if (item2.typeOfFig == "ball") {
+					check = checkColl_ball_ball(item1, item2);
+				}
+				if (item2.typeOfFig == "rectangle") {
+					check = checkColl_ball_rect(item1, item2);
+				}
+				if (item2.typeOfFig == "triangle") {
+					check = checkColl_ball_tri(item1, item2);
+				}
+			}
+
+			if (item1.typeOfFig == "rectangle") {
+				if (item2.typeOfFig == "ball") {
+					check = checkColl_ball_rect(item2, item1);
+				}
+				if (item2.typeOfFig == "rectangle") {
+					check = checkColl_rect_rect(item1, item2);
+				}
+				if (item2.typeOfFig == "triangle") {
+					check = checkColl_rect_tri(item1, item2);
+				}
+			}
+
+			if (item1.typeOfFig == "triangle") {
+				if (item2.typeOfFig == "ball") {
+					check = checkColl_ball_tri(item2, item1);
+				}
+				if (item2.typeOfFig == "rectangle") {
+					check = checkColl_rect_tri(item2, item1);
+				}
+				if (item2.typeOfFig == "triangle") {
+					check = checkColl_tri_tri(item1, item2);
+				}
+			}
+			return check;
+		}
+
 		function moveItems(){
-			//реализация движения шариков, находящихся в массиве balls
+			//реализация движения шариков, находящихся в массиве items
 			drawBack(ctx,'#202020','#aaa',canvas.width,canvas.height);
-			for (var i = 0; i < balls.length;i){
+			for (let i = 0; i < items.length;i){
 				if (moveChaotic) {
-					balls[i].moveUp = false;
-					balls[i].moveDown = false;
-					balls[i].moveLeft = false;
-					balls[i].moveRight = false;
 					rand = getRandomInRange(0, 3);
 					if (rand == 0) {
-						balls[i].moveUp = true;
+						items[i].changeDir("up");
 					}
 					else if (rand == 1) {
-						balls[i].moveDown = true;
+						items[i].changeDir("down");
 					}
 					else if (rand == 2) {
-						balls[i].moveLeft = true;
+						items[i].changeDir("right");
 					}
 					else {
-						balls[i].moveRight = true;
+						items[i].changeDir("left");
 					}
 				}
-				balls[i].changeCoordinates();
-				balls[i].draw(ctx);
-				if ((balls[i].posX > canvas.width) || (balls[i].posX < 0) || (balls[i].posY > canvas.height) ||(balls[i].posY < 0)) 
-					balls.splice(i,1);
-				else 
-					i++;
+				items[i].grow();
+				//items[i].accell();
+				if (items[i].check_pop()) {
+					items.splice(i,1);
+				}
+				else {
+					items[i].changeCoordinates();
+					if (items[i].typeOfFig != "ball") {
+						items[i].update_tops();
+					}
+					if ((items[i].posX > canvas.width) || (items[i].posX < 0) || 
+						(items[i].posY > canvas.height) ||(items[i].posY < 0)) 
+						items.splice(i,1);
+					else {
+						let check = false;
+						for (let j = 0; j < items.length; j++){
+							if ((i != j) && (check_collusion(items[i], items[j]))){
+								if (j < i){
+									items.splice(i,1);
+									items.splice(j,1);
+									i--;
+								}
+								else {
+									items.splice(j,1);
+									items.splice(i,1);
+								}
+								check = true;
+								break;
+							}
+						}
+						if (!check)
+							i++;
+					}
+						
+				}
+			}
+			for (var i = 0; i < items.length; i++)
+				items[i].draw(ctx);
+		}
+
+		function acceleration() {
+			for (var i = 0; i < items.length; i++) {
+				items[i].accell();
 			}
 		}
+
+		function turnAccelerationOn(){
+			clearInterval(idAcceleration);
+			idAcceleration = setInterval('acceleration();',500);
+		}
+
+		function turnAccelerationOff(){
+			clearInterval(idAcceleration);
+		}
+
 		function move(){
 			clearInterval(idTimer);
 			idTimer = setInterval('moveItems();',50);
 		}
 		
+		
 		function setMoveUp(){
+			disableGlobalMoving();
 			moveUp = true;
-			moveDown = false;
-			moveLeft = false;
-			moveRight = false;
-			moveRandom = false;
-			moveChaotic = false;
-			for (var i = 0; i < balls.length; i++){
-				balls[i].moveUp = true;
-				balls[i].moveDown = false;
-				balls[i].moveLeft = false;
-				balls[i].moveRight = false;
+			for (var i = 0; i < items.length; i++){
+				items[i].changeDir("up");
 			}
 			move();
 		}
 
 		function setMoveDown(){
-			moveUp = false;
+			disableGlobalMoving()
 			moveDown = true;
-			moveLeft = false;
-			moveRight = false;
-			moveRandom = false;
-			moveChaotic = false;
-			for (var i = 0; i < balls.length; i++){
-				balls[i].moveUp = false;
-				balls[i].moveDown = true;
-				balls[i].moveLeft = false;
-				balls[i].moveRight = false;
+			for (var i = 0; i < items.length; i++){
+				items[i].changeDir("down");
 			}
 			move();
 		}
 
 		function setMoveLeft(){
-			moveUp = false;
-			moveDown = false;
+			disableGlobalMoving();
 			moveLeft = true;
-			moveRight = false;
-			moveRandom = false;
-			moveChaotic = false;
-			for (var i = 0; i < balls.length; i++){
-				balls[i].moveUp = false;
-				balls[i].moveDown = false;
-				balls[i].moveLeft = true;
-				balls[i].moveRight = false;
+			for (var i = 0; i < items.length; i++){
+				items[i].changeDir("left");
 			}
 			move();
 		}
 
 		function setMoveRight(){
-			moveUp = false;
-			moveDown = false;
-			moveLeft = false;
+			disableGlobalMoving();
 			moveRight = true;
-			moveRandom = false;
-			moveChaotic = false;
-			for (var i = 0; i < balls.length; i++){
-				balls[i].moveUp = false;
-				balls[i].moveDown = false;
-				balls[i].moveLeft = false;
-				balls[i].moveRight = true;
+			for (var i = 0; i < items.length; i++){
+				items[i].changeDir("right");
 			}
 			move();
 		}
 
 		function setMoveChaotic(){
-			moveUp = false;
-			moveDown = false;
-			moveLeft = false;
-			moveRight = false;
-			moveRandom = false;
+			disableGlobalMoving();
 			moveChaotic = true;
 			move();
 		}
 
 		function setMoveRandom(){
-			moveUp = false;
-			moveDown = false;
-			moveLeft = false;
-			moveRight = false;
+			disableGlobalMoving();
 			moveRandom = true;
-			moveChaotic = false;
 			var rand = 0;
-			for (var i = 0; i < balls.length; i++){
-				balls[i].moveUp = false;
-				balls[i].moveDown = false;
-				balls[i].moveLeft = false;
-				balls[i].moveRight = false;
+			for (var i = 0; i < items.length; i++){
 				rand = getRandomInRange(0, 3);
 				if (rand == 0) {
-					balls[i].moveUp = true;
+					items[i].changeDir("up");
 				}
 				else if (rand == 1) {
-					balls[i].moveDown = true;
+					items[i].changeDir("down");
 				}
 				else if (rand == 2) {
-					balls[i].moveLeft = true;
+					items[i].changeDir("left");
 				}
 				else {
-					balls[i].moveRight = true;
+					items[i].changeDir("right");
 				}
 			}
 			move();
@@ -283,9 +705,11 @@
 	</style>
 </head>
 <body onload="init();">
-	<canvas id="canvas" width="600" height="400" onclick="goInput(event);">
+	<canvas id="canvas" width="1000" height="500" onclick="goInput(event);">
 	</canvas>
 	<form>
+		<input type = "button" value = "Включить ускорение" onclick="turnAccelerationOn()">
+		<input type = "button" value = "Выключить ускорение" onclick="turnAccelerationOff()">
 		<input type = "button" value = "Движение" onclick="move()">
 		<input type = "button" value = "Стоп" onclick="clearInterval(idTimer);">
 		<input type = "button" value = "Вверх" onclick="setMoveUp()">
