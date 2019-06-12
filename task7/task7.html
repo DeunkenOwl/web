@@ -22,7 +22,7 @@
 			this.speed = getRandomInRange(2, 6);
 			// ускорение
 			this.ac = getRandomInRange(1, 2);
-			// скорость увеличения
+			// скорость роста
 			this.growSpeed = 1.005;
 			// тип фигуры
 			this.typeOfFig = "none";
@@ -199,6 +199,8 @@
 			this.typeOfFig = "triangle";
 			//угол наклона
 			this.fi = getRandomFloatInRange(0, 2 * Math.PI);
+			// скорость вращения
+			this.rotSpeed = getRandomFloatInRange(0, Math.PI / 120);
 			// отдаленность вершин
 			this.r = getRandomInRange(5, 25);
 			// координаты вершин
@@ -234,6 +236,7 @@
 
 		TTri.prototype.update_tops = function() {
 			with (this) {
+				fi = fi + rotSpeed;
 				x1 = posX + r * Math.cos(fi);
 				y1 = posY + r * Math.sin(fi);
 				x2 = posX + r * Math.cos(fi + (2 * Math.PI / 3));
@@ -499,17 +502,17 @@
 			else return false;
 		}
 
-		function checkColl_rect_rect (rect1, rect1) {
-			if (checkColl_tri_line(rect1, rect1.x1, rect1.y1, rect1.x2, rect1.y2)){
+		function checkColl_rect_rect (rect1, rect2) {
+			if (checkColl_rect_line(rect1, rect2.x1, rect2.y1, rect2.x2, rect2.y2)){
 				return true;
 			}
-			else if (checkColl_tri_line(rect1, rect1.x2, rect1.y2, rect1.x3, rect1.y3)){
+			else if (checkColl_rect_line(rect1, rect2.x2, rect2.y2, rect2.x3, rect2.y3)){
 				return true;
 			}
-			else if (checkColl_tri_line(rect1, rect1.x3, rect1.y3, rect1.x4, rect1.y4)){
+			else if (checkColl_rect_line(rect1, rect2.x3, rect2.y3, rect2.x4, rect2.y4)){
 				return true;
 			}
-			else if (checkColl_tri_line(rect1, rect1.x4, rect1.y4, rect1.x1, rect1.y1)){
+			else if (checkColl_rect_line(rect1, rect2.x4, rect2.y4, rect2.x1, rect2.y1)){
 				return true;
 			}
 			else return false;
@@ -576,7 +579,6 @@
 					}
 				}
 				items[i].grow();
-				//items[i].accell();
 				if (items[i].check_pop()) {
 					items.splice(i,1);
 				}
