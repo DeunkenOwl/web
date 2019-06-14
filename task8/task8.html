@@ -1,0 +1,111 @@
+<html>
+<head>
+	<title>Canvas & Mootools</title>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mootools/1.6.0/mootools-core.js"></script>
+	<script type="text/javascript">
+		var canvas, ctx, idTimer;
+		function getRandomInRange(min, max) {
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+		function getRandomFloatInRange(min, max) {
+			return Math.random() * (max - min + 1) + min;
+		}
+
+		class TFigure {
+			constructor(pX, pY, dir) {
+				this.posX = pX; //позиция фигуры по X
+				this.posY = pY; //позиция фигуры по Y
+				this.typeOfFig = "none";
+				// направление движения (угол от оси X)
+				this.direction = dir;
+				//скорость фигуры
+				this.speed = 0;
+				// ускорение фигуры
+				this.accelleration = 0;
+				this.col = 'rgb(255,255,255)';
+			}
+
+			changeCoordinates() {
+				this.posX = this.posX + this.speed * Math.cos(this.direction);
+				this.posY = this.posY - this.speed * Math.sin(this.direction);
+			}
+		}
+
+		class TBall extends TFigure {
+			constructor(pX, pY, dir, r) {
+				super(pX, pY, dir);
+				this.r = r;
+				this.typeOfFig = "ball";
+			}
+
+			draw (ctx) {
+				ctx.fillStyle = this.col;
+				ctx.beginPath();
+				ctx.arc(this.posX, this.posY, this.r, 0, 2*Math.PI, false);
+				ctx.closePath();
+				ctx.fill();
+			}
+		}
+
+		class TGun {
+			constructor(pbX, pbY, r, fi) {
+				this.baseX = pbX;
+				this.baseY = pbY;
+				this.fi = fi;
+				this.r = r;
+				this.gunX = this.baseX + this.r * Math.cos(this.fi);
+				this.gunY = this.baseY - this.r * Math.sin(this.fi);
+			}
+			updateCoordinates(fi) {
+				this.gunX = this.baseX + this.r * Math.cos(this.fi);
+				this.gunY = this.baseY - this.r * Math.sin(this.fi);
+			}
+			draw() {
+				ctx.beginPath();
+				ctx.moveTo(this.baseX, this.baseY);
+				ctx.lineTo(this.gunX, this.gunY);
+				ctx.stroke();
+			}
+		}
+
+		function drawBack(ctx,col1,col2,w,h){
+			// закрашиваем канвас градиентным фоном
+			ctx.save();
+			var g = ctx.createLinearGradient(0,0,0,h);
+			g.addColorStop(1,col1);
+			g.addColorStop(0,col2);
+			ctx.fillStyle = g;
+			ctx.fillRect(0,0,w,h);
+			ctx.restore();
+		}
+
+		function init(){
+			canvas = document.getElementById('canvas');
+			if (canvas.getContext){
+				ctx = canvas.getContext('2d');
+				//рисуем фон
+				drawBack(ctx,'#202020','#aaa',canvas.width,canvas.height);
+				//рисуем базу и пушку
+				var base = new TBall(0, canvas.height, 0, 60);
+				var baseGun = new TGun(base.posX, base.posY, base.r * 1.5, Math.PI / 4);
+				baseGun.draw();
+				base.draw();
+			}
+		}
+
+		function goInput(event){
+			var x = event.clientX;
+			var y = event.clientY;
+			let ball = new TBall(x, y, 0, 0, 0, 10)
+			ball.draw(ctx);
+		}
+	</script>
+	<style type="text/css">
+		canvas { border: 1px solid blue; }
+	</style>
+</head>
+<body onload="init();">
+	<canvas id="canvas" width="1000" height="500" onclick="goInput(event);">
+	</canvas>
+</body>
+</html>
