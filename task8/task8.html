@@ -3,11 +3,11 @@
 	<title>Canvas & Mootools</title>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mootools/1.6.0/mootools-core.js"></script>
 	<script type="text/javascript">
-		var canvas, ctx, idUpdate, idBulletsMove, bullets, enemies, score, diffScoreMod;
+		var canvas, ctx, idUpdate, idBulletsMove, bullets, enemies, score, diffScoreMod, lives, gamerName, diffMod, cooldown, bigEnemyDelay, enemyCounter;
 		var gameInProgress = false;
 		//сила гравитации
-		var gSpeed = 1;
-		var players = [["player1", 100], ["player2", 90],["player3", 68],["player4", 55],["player5", 30]];
+		var G = 1;
+		var players = [["AAA", 41], ["BBB", 34],["CCC", 23],["DDD", 3],["FFF", 1]];
 		function getRandomInRange(min, max) {
 			return Math.floor(Math.random() * (max - min + 1)) + min;
 		}
@@ -46,6 +46,14 @@
 				this.col = "rgb(200,200,200)";
 				this.gravityTrigger = false;
 				this.gMod = 1;
+				this.gSpeed = G;
+				this.boss = false;
+				this.damage = 0;
+			}
+
+			enableGravity (gM) {
+				this.gravityTrigger = true;
+				this.gMod = gM;
 			}
 
 			changeCoordinates() {
@@ -53,19 +61,14 @@
 				this.posX = this.posX + this.speed * Math.cos(this.direction);
 				this.posY = this.posY - this.speed * Math.sin(this.direction);
 				this.speed = this.speed + this.accelleration;
-				if (this.gravityTrigger) {
-					//alert(this.direction);
-					let nextX = this.posX + this.speed * Math.cos(this.direction);
-					let nextY = this.posY - this.speed * Math.sin(this.direction) + gSpeed * this.gMod;
-					let fi = findFi(this.posX, this.posY, nextX, nextY);
-					if (nextY > this.posY) {
-						fi = -fi;
-					}
-					//alert(fi);
-					this.direction = fi;
-					//alert(this.direction);
-				}
+				/*if (this.gravityTrigger && this.direction < 3 * Math.PI / 2) {
+					this.direction =  this.direction + (this.direction + Math.PI / 2) / this.gMod;
+				}*/
 				
+				if (this.gravityTrigger) {
+					this.posY += this.gSpeed * this.gMod;
+					this.gSpeed += G;
+				}
 			}
 		}
 
@@ -182,6 +185,40 @@
 			}
 		}
 
+		class bigAirEnemy extends TBall {
+			constructor(pX, pY, dir, r, hp) {
+				super(pX, pY, dir, r);
+				this.hp = hp;
+				this.boss = true;
+			}
+
+			damage(damage) {
+				alert(this.hp);
+				this.hp -= damage;
+				alert(this.hp);
+				if (this.hp <= 0)
+					return true;
+				else return false;
+			}
+		}
+
+		class bigLandEnemy extends TRec {
+			constructor(pX, pY, dir, height, width, hp) {
+				super(pX, pY, dir, height, width);
+				this.hp = hp;
+				this.boss = true;
+			}
+
+			damage(damage) {
+				alert(this.hp);
+				this.hp -= damage;
+				alert(this.hp);
+				if (this.hp <= 0)
+					return true;
+				else return false;
+			}
+		}
+
 		class TGun {
 			constructor(pbX, pbY, r, fi) {
 				this.baseX = pbX;
@@ -209,36 +246,45 @@
 				ctx.stroke();
 			}
 			shoot() {
-				if (this.weapon == "bullet") {
-					var bullet = new TBall(this.gunX, this.gunY, this.fi, 20)
-					bullet.gravityTrigger = true;
-					bullet.gMod = 0.1;
-					bullet.speed = 5;
-				}
-				else if (this.weapon == "rocket") {
-					var bullet = new TRec(this.gunX, this.gunY, this.fi, 15, 40)
-					bullet.speed = 2;
-				}
-				else if (this.weapon == "shuriken") {
-					var bullet = new TTri(this.gunX, this.gunY, this.fi, 20)
-					bullet.speed = 6;
+				if (cooldown == 0){
+					if (this.weapon == "bullet") {
+						// ядра
+						var bullet = new TBall(this.gunX, this.gunY, this.fi, 20)
+						bullet.enableGravity(0.08);
+						bullet.speed = 8;
+						bullet.damage = 2;
+						cooldown = 50;
+					}
+					else if (this.weapon == "rocket") {
+						// пво рокеты
+						var bullet = new TRec(this.gunX, this.gunY, this.fi, 15, 40)
+						bullet.speed = 10;
+						bullet.damage = 1;
+						cooldown = 60;
+					}
+					else if (this.weapon == "shuriken") {
+						// сюрикены
+						var bullet = new TTri(this.gunX, this.gunY, this.fi, 20)
+						bullet.speed = 6;
+						bullet.enableGravity(0.05);
+						bullet.damage = 0.5;
+						bullet.draw(ctx);
+						bullets.push(bullet);
+						bullet = new TTri(this.gunX, this.gunY, this.fi + Math.PI / 12, 20);
+						bullet.speed = 6;
+						bullet.enableGravity(0.05);
+						bullet.damage = 0.5;
+						bullet.draw(ctx);
+						bullets.push(bullet);
+						bullet = new TTri(this.gunX, this.gunY, this.fi - Math.PI / 12, 20);
+						bullet.speed = 6;
+						bullet.enableGravity(0.05);
+						bullet.damage = 0.5;
+						cooldown = 90;
+					}
 					bullet.draw(ctx);
 					bullets.push(bullet);
-					bullet = new TTri(this.gunX, this.gunY, this.fi + Math.PI / 12, 20);
-					bullet.speed = 6;
-					bullet.draw(ctx);
-					bullets.push(bullet);
-					bullet = new TTri(this.gunX, this.gunY, this.fi - Math.PI / 12, 20);
-					bullet.speed = 6;
 				}
-				else if (this.weapon == "dart") {
-					var bullet = new TTri(this.gunX, this.gunY, this.fi, 5);
-					bullet.rotSpeed = 0;
-					bullet.speed = 10;
-					bullet.col = "rgb(255, 0, 255)";
-				}
-				bullet.draw(ctx);
-				bullets.push(bullet);
 			}
 			changeWeapon() {
 				if (this.weapon == "bullet")
@@ -248,9 +294,6 @@
 					this.weapon = "shuriken";
 				else
 				if (this.weapon == "shuriken")
-					this.weapon = "dart";
-				else
-				if (this.weapon == "dart")
 					this.weapon = "bullet";
 			}
 		}
@@ -500,95 +543,180 @@
 				enemySpawnTimeAirDelay = 0;
 				enemySpawnTimeLand = 300;
 				enemySpawnTimeLandDelay = 0;
+				bigEnemyDelay = 5000;
+				bigEnemySpawnTime = 5000
 				enemies = [];
 				score = 0;
 				diffScoreMod = 1;
+				diffMod = 1.05;
+				lives = 3;
+				cooldown = 0;
+				enemyCounter = 0;
 			}
 		}
 
 		function spawnAirEnemy() {
-			var enemy = new TBall(canvas.width - 5, getRandomFloatInRange(10, canvas.height / 3), Math.PI, getRandomInRange(25,40))
-			enemy.speed = getRandomFloatInRange(0.1, 0.5);
+			var enemy = new TBall(canvas.width - 5, getRandomFloatInRange(10, canvas.height / 3), Math.PI, getRandomInRange(25,40) / diffMod)
+			enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod;
 			enemy.col = "rgb(255, 0, 0)";
 			return enemy;
 		}
 
 		function spawnLandEnemy() {
-			let h = getRandomInRange(30,50);
-			var enemy = new TRec(canvas.width - 5, canvas.height - h / 2 - 1, Math.PI, h, getRandomInRange(30,50))
-			enemy.speed = getRandomFloatInRange(0.1, 0.5);
+			let h = getRandomInRange(30,50) / diffMod;
+			var enemy = new TRec(canvas.width - 5, canvas.height - h / 2 - 1, Math.PI, h, getRandomInRange(30,50) / diffMod)
+			enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod;
 			enemy.col = "rgb(255, 0, 0)";
 			return enemy;
+		}
+
+		function spawnBigEnemy() {
+			let r = getRandomInRange(0, 1);
+			let enemy;
+			if (r == 0) {
+				let r = getRandomInRange(25,40) * 1.5 / diffMod;
+				enemy = new bigAirEnemy(canvas.width - 5, getRandomFloatInRange(10, canvas.height / 3), Math.PI, r, parseInt(diffMod * 3 / 2))
+				enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod * 1.1;
+				enemy.col = "rgb(150, 0, 150)";
+			}
+			else {
+				let h = getRandomInRange(30,50) / diffMod * 1.5;
+				let w = getRandomInRange(30,50) * 1.5 / diffMod
+				enemy = new bigLandEnemy(canvas.width - 5, canvas.height - h / 2 - 1, Math.PI, h, w, parseInt(diffMod * 3 / 2))
+				enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod * 1.1;
+				enemy.col = "rgb(250, 0, 250)";
+			}
+			enemy.boss = true;
+			enemy.hp = 10;
+			return enemy;
+		}
+
+		function gameOwer() {
+			clearInterval(idUpdate);
+			let i = 0;
+			while (i < 6 && players[i][1] >= score) {
+				i++;
+			}
+			if (i < 6) {
+				players[i][0] = gamerName;
+				players[i][1] = parseInt(score);
+
+			}
+			init();
 		}
 
 		function update() {
 			drawBack(ctx,'#202020','#aaa',canvas.width,canvas.height);
 			baseGun.draw(ctx);
 			base.draw(ctx);
-			enemySpawnTimeAirDelay++;
-			enemySpawnTimeLandDelay++;
-			if (enemySpawnTimeAirDelay >= enemySpawnTimeAir) {
-				enemies.push(spawnAirEnemy());
-				enemySpawnTimeAirDelay = 0;
-			}
-			if (enemySpawnTimeLandDelay >= enemySpawnTimeLand) {
-				enemies.push(spawnLandEnemy());
-				enemySpawnTimeLandDelay= 0;
-			}
-			for (let i = 0; i < enemies.length; i) {
-				enemies[i].changeCoordinates();
-				if (enemies.posX < 0)
-					enemies.splice(i,1);
-				else {
-					enemies[i].draw(ctx);
-					i++;
+			if (lives == 0)
+				gameOwer();
+			else {
+				enemySpawnTimeAirDelay++;
+				enemySpawnTimeLandDelay++;
+				if (enemySpawnTimeAirDelay >= enemySpawnTimeAir / diffMod) {
+					enemies.push(spawnAirEnemy());
+					enemySpawnTimeAirDelay = 0;
 				}
-			}
-			for (let i = 0; i < bullets.length; i) {
-				let check = true
-				for (let j = 0; j < enemies.length; j++) {
-					if (check_collusion(bullets[i], enemies[j])) {
-						check = false;
-						bullets.splice(i, 1);
-						enemies.splice(j, 1);
-						score = score + diffScoreMod;
-						break;
+				if (enemySpawnTimeLandDelay >= enemySpawnTimeLand  / diffMod) {
+					enemies.push(spawnLandEnemy());
+					enemySpawnTimeLandDelay= 0;
+				}
+				//if (diffMod > 10) {
+					bigEnemyDelay++;
+					if (bigEnemyDelay >= bigEnemySpawnTime / diffMod) {
+						enemies.push(spawnBigEnemy());
+					}
+					bigEnemyDelay = 0;
+				//}
+				for (let i = 0; i < enemies.length; i) {
+					enemies[i].changeCoordinates();
+					if (enemies[i].posX < 0){
+						enemies.splice(i,1);
+						//lives--;
+					}
+					else {
+						enemies[i].draw(ctx);
+						i++;
 					}
 				}
-				if (check){
-					bullets[i].changeCoordinates();
-					if ((bullets[i].posX > canvas.width) || (bullets[i].posX < 0) || 
-						(bullets[i].posY > canvas.height) ||(bullets[i].posY < 0)) 
-						bullets.splice(i,1);
-					else{
-						for (let j = 0; j < enemies.length; j++) {
-							if (check_collusion(bullets[i], enemies[j])) {
+				for (let i = 0; i < bullets.length; i) {
+					let check = true
+					for (let j = 0; j < enemies.length; j++) {
+						if (check_collusion(bullets[i], enemies[j])) {
+							alert(enemies[j].boss);
+							if (enemies[j].boss) {
+								alert("boo");
+								if (enemies[j].damage(bullets[i].damage)) {
+									check = false;
+									bullets.splice(i, 1);
+									enemies.splice(j, 1);
+									enemyCounter++;
+									score = score + diffScoreMod;
+									diffScoreMod = enemyCounter / 10 + 1;
+									diffMod = diffMod * diffScoreMod;
+									break;
+								}
+							}
+							else {
+								alert("boo");
 								check = false;
 								bullets.splice(i, 1);
 								enemies.splice(j, 1);
+								enemyCounter++;
 								score = score + diffScoreMod;
+								diffScoreMod = enemyCounter / 10 + 1;
+								diffMod = diffMod * diffScoreMod;
 								break;
 							}
 						}
-						if (check)
-							i++;
 					}
+					if (check){
+						bullets[i].changeCoordinates();
+						if ((bullets[i].posX > canvas.width) || (bullets[i].posX < 0) || 
+							(bullets[i].posY > canvas.height) ||(bullets[i].posY < 0)) 
+							bullets.splice(i,1);
+						else{
+							for (let j = 0; j < enemies.length; j++) {
+								if (check_collusion(bullets[i], enemies[j])) {
+									check = false;
+									bullets.splice(i, 1);
+									enemies.splice(j, 1);
+									score = score + diffScoreMod;
+									break;
+								}
+							}
+							if (check)
+								i++;
+						}
+					}
+					
+
 				}
-				
+				for (let i = 0; i < bullets.length; i++) {
+					bullets[i].draw(ctx);
+				}
 
+				ctx.font = "15pt Arial";
+				ctx.fillStyle = "rgb(50, 50, 250)";
+				ctx.fillText("Score: " + parseInt(score), canvas.width / 20, canvas.height  / 20);
+				ctx.fillStyle = "rgb(250, 50, 50)";
+				ctx.fillText("Lives: " + lives, canvas.width / 20, canvas.height * 2 / 20);
+				ctx.fillStyle = "rgb(50, 250, 50)";
+				ctx.fillText("Cooldown: " + cooldown / 40, canvas.width * 3 / 20, canvas.height / 20);
+				ctx.fillStyle = "rgb(0, 150, 150)";
+				ctx.fillText("Weapon: " + baseGun.weapon, canvas.width * 3 / 20, canvas.height * 2 / 20);
+				ctx.fillStyle = "rgb(250, 250, 250)";
+				ctx.fillText("Level: " + parseInt(enemyCounter / 10), canvas.width / 20, canvas.height * 3 / 20);
+				if (cooldown > 0)
+					cooldown--;
 			}
-			for (let i = 0; i < bullets.length; i++) {
-				bullets[i].draw(ctx);
-			}
-
-			ctx.font = "15pt Arial";
-			ctx.fillStyle = "rgb(123, 213, 111)";
-			ctx.fillText("Score: " + score, canvas.width / 3, canvas.height * 9 / 10);
 		}
 
 		function LMB(){
 			if (!gameInProgress) {
 				gameInProgress = true;
+				gamerName = prompt("Введите имя игрока", "Gamer");
 				idUpdate = setInterval("update();", 10);
 			}
 			else{
