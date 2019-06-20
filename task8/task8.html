@@ -47,13 +47,20 @@
 				this.gravityTrigger = false;
 				this.gMod = 1;
 				this.gSpeed = G;
-				this.boss = false;
 				this.damage = 0;
+				this.hp = 0;
 			}
 
 			enableGravity (gM) {
 				this.gravityTrigger = true;
 				this.gMod = gM;
+			}
+
+			hit (damage) {
+				this.hp -= damage;
+				if (this.hp <= 0)
+					return true
+				else return false
 			}
 
 			changeCoordinates() {
@@ -81,6 +88,7 @@
 
 			draw (ctx) {
 				ctx.fillStyle = this.col;
+				ctx.strokeStyle = "rgb(0,0,0)";
 				ctx.beginPath();
 				ctx.arc(this.posX, this.posY, this.r, 0, 2*Math.PI, false);
 				ctx.closePath();
@@ -135,6 +143,7 @@
 
 			draw(ctx){
 				ctx.fillStyle = this.col;
+				ctx.strokeStyle = "rgb(0,0,0)";
 				ctx.beginPath();
 				ctx.moveTo(this.x1, this.y1);
 				ctx.lineTo(this.x2, this.y2);
@@ -175,6 +184,7 @@
 
 			draw() {
 				ctx.fillStyle = this.col;
+				ctx.strokeStyle = "rgb(0,0,0)";
 				ctx.beginPath();
 				ctx.moveTo(this.x1, this.y1);
 				ctx.lineTo(this.x2, this.y2);
@@ -185,39 +195,6 @@
 			}
 		}
 
-		class bigAirEnemy extends TBall {
-			constructor(pX, pY, dir, r, hp) {
-				super(pX, pY, dir, r);
-				this.hp = hp;
-				this.boss = true;
-			}
-
-			damage(damage) {
-				alert(this.hp);
-				this.hp -= damage;
-				alert(this.hp);
-				if (this.hp <= 0)
-					return true;
-				else return false;
-			}
-		}
-
-		class bigLandEnemy extends TRec {
-			constructor(pX, pY, dir, height, width, hp) {
-				super(pX, pY, dir, height, width);
-				this.hp = hp;
-				this.boss = true;
-			}
-
-			damage(damage) {
-				alert(this.hp);
-				this.hp -= damage;
-				alert(this.hp);
-				if (this.hp <= 0)
-					return true;
-				else return false;
-			}
-		}
 
 		class TGun {
 			constructor(pbX, pbY, r, fi) {
@@ -249,7 +226,7 @@
 				if (cooldown == 0){
 					if (this.weapon == "bullet") {
 						// ядра
-						var bullet = new TBall(this.gunX, this.gunY, this.fi, 20)
+						var bullet = new TBall(this.gunX, this.gunY, this.fi, 30)
 						bullet.enableGravity(0.08);
 						bullet.speed = 8;
 						bullet.damage = 2;
@@ -257,26 +234,26 @@
 					}
 					else if (this.weapon == "rocket") {
 						// пво рокеты
-						var bullet = new TRec(this.gunX, this.gunY, this.fi, 15, 40)
+						var bullet = new TRec(this.gunX, this.gunY, this.fi, 20, 45)
 						bullet.speed = 10;
 						bullet.damage = 1;
 						cooldown = 60;
 					}
 					else if (this.weapon == "shuriken") {
 						// сюрикены
-						var bullet = new TTri(this.gunX, this.gunY, this.fi, 20)
+						var bullet = new TTri(this.gunX, this.gunY, this.fi, 30)
 						bullet.speed = 6;
 						bullet.enableGravity(0.05);
 						bullet.damage = 0.5;
 						bullet.draw(ctx);
 						bullets.push(bullet);
-						bullet = new TTri(this.gunX, this.gunY, this.fi + Math.PI / 12, 20);
+						bullet = new TTri(this.gunX, this.gunY, this.fi + Math.PI / 12, 30);
 						bullet.speed = 6;
 						bullet.enableGravity(0.05);
 						bullet.damage = 0.5;
 						bullet.draw(ctx);
 						bullets.push(bullet);
-						bullet = new TTri(this.gunX, this.gunY, this.fi - Math.PI / 12, 20);
+						bullet = new TTri(this.gunX, this.gunY, this.fi - Math.PI / 12, 30);
 						bullet.speed = 6;
 						bullet.enableGravity(0.05);
 						bullet.damage = 0.5;
@@ -556,16 +533,16 @@
 		}
 
 		function spawnAirEnemy() {
-			var enemy = new TBall(canvas.width - 5, getRandomFloatInRange(10, canvas.height / 3), Math.PI, getRandomInRange(25,40) / diffMod)
-			enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod;
+			var enemy = new TBall(canvas.width - 5, getRandomFloatInRange(30, canvas.height / 2), Math.PI, getRandomInRange(25,40) / (diffMod / 5));
+			enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod / 5;
 			enemy.col = "rgb(255, 0, 0)";
 			return enemy;
 		}
 
 		function spawnLandEnemy() {
-			let h = getRandomInRange(30,50) / diffMod;
-			var enemy = new TRec(canvas.width - 5, canvas.height - h / 2 - 1, Math.PI, h, getRandomInRange(30,50) / diffMod)
-			enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod;
+			let h = getRandomInRange(30,50) / (diffMod / 5);
+			var enemy = new TRec(canvas.width - 5, canvas.height - h / 2 - 1, Math.PI, h, getRandomInRange(30,50) / (diffMod / 5));
+			enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod / 5;
 			enemy.col = "rgb(255, 0, 0)";
 			return enemy;
 		}
@@ -574,20 +551,17 @@
 			let r = getRandomInRange(0, 1);
 			let enemy;
 			if (r == 0) {
-				let r = getRandomInRange(25,40) * 1.5 / diffMod;
-				enemy = new bigAirEnemy(canvas.width - 5, getRandomFloatInRange(10, canvas.height / 3), Math.PI, r, parseInt(diffMod * 3 / 2))
-				enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod * 1.1;
+				enemy = new TBall(canvas.width - 5, getRandomFloatInRange(30, canvas.height / 2), Math.PI, getRandomInRange(25,40) * 1.5 / (diffMod / 5));
+				enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod / 5;
 				enemy.col = "rgb(150, 0, 150)";
 			}
 			else {
-				let h = getRandomInRange(30,50) / diffMod * 1.5;
-				let w = getRandomInRange(30,50) * 1.5 / diffMod
-				enemy = new bigLandEnemy(canvas.width - 5, canvas.height - h / 2 - 1, Math.PI, h, w, parseInt(diffMod * 3 / 2))
-				enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod * 1.1;
+				let h = getRandomInRange(30,50) / (diffMod / 5);
+				enemy = new TRec(canvas.width - 5, canvas.height - h / 2 - 1, Math.PI, h, getRandomInRange(30,50) / (diffMod / 5));
+				enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod / 5;
 				enemy.col = "rgb(250, 0, 250)";
 			}
-			enemy.boss = true;
-			enemy.hp = 10;
+			enemy.hp = diffMod;
 			return enemy;
 		}
 
@@ -614,26 +588,26 @@
 			else {
 				enemySpawnTimeAirDelay++;
 				enemySpawnTimeLandDelay++;
-				if (enemySpawnTimeAirDelay >= enemySpawnTimeAir / diffMod) {
+				if (enemySpawnTimeAirDelay >= enemySpawnTimeAir / (diffMod / 10 + 1)) {
 					enemies.push(spawnAirEnemy());
 					enemySpawnTimeAirDelay = 0;
 				}
-				if (enemySpawnTimeLandDelay >= enemySpawnTimeLand  / diffMod) {
+				if (enemySpawnTimeLandDelay >= enemySpawnTimeLand  / (diffMod / 10 + 1)) {
 					enemies.push(spawnLandEnemy());
 					enemySpawnTimeLandDelay= 0;
 				}
-				//if (diffMod > 10) {
+				if (diffMod > 3) {
 					bigEnemyDelay++;
-					if (bigEnemyDelay >= bigEnemySpawnTime / diffMod) {
+					if (bigEnemyDelay >= bigEnemySpawnTime / (diffMod / 9 + 1)) {
 						enemies.push(spawnBigEnemy());
 					}
 					bigEnemyDelay = 0;
-				//}
+				}
 				for (let i = 0; i < enemies.length; i) {
 					enemies[i].changeCoordinates();
 					if (enemies[i].posX < 0){
 						enemies.splice(i,1);
-						//lives--;
+						lives--;
 					}
 					else {
 						enemies[i].draw(ctx);
@@ -644,31 +618,16 @@
 					let check = true
 					for (let j = 0; j < enemies.length; j++) {
 						if (check_collusion(bullets[i], enemies[j])) {
-							alert(enemies[j].boss);
-							if (enemies[j].boss) {
-								alert("boo");
-								if (enemies[j].damage(bullets[i].damage)) {
-									check = false;
-									bullets.splice(i, 1);
-									enemies.splice(j, 1);
-									enemyCounter++;
-									score = score + diffScoreMod;
-									diffScoreMod = enemyCounter / 10 + 1;
-									diffMod = diffMod * diffScoreMod;
-									break;
-								}
-							}
-							else {
-								alert("boo");
-								check = false;
-								bullets.splice(i, 1);
+							if (enemies[j].hit(bullets[i].damage)) {
 								enemies.splice(j, 1);
 								enemyCounter++;
 								score = score + diffScoreMod;
 								diffScoreMod = enemyCounter / 10 + 1;
-								diffMod = diffMod * diffScoreMod;
-								break;
+								diffMod = diffScoreMod;
 							}
+							check = false;
+							bullets.splice(i, 1);
+							break;
 						}
 					}
 					if (check){
@@ -679,19 +638,23 @@
 						else{
 							for (let j = 0; j < enemies.length; j++) {
 								if (check_collusion(bullets[i], enemies[j])) {
+									if (enemies[j].hit(bullets[i].damage)) {
+										enemies.splice(j, 1);
+										enemyCounter++;
+										score = score + diffScoreMod;
+										diffScoreMod = enemyCounter / 10 + 1;
+										diffMod = diffScoreMod;
+									}
 									check = false;
 									bullets.splice(i, 1);
-									enemies.splice(j, 1);
-									score = score + diffScoreMod;
 									break;
 								}
 							}
+						}
+							}
 							if (check)
 								i++;
-						}
 					}
-					
-
 				}
 				for (let i = 0; i < bullets.length; i++) {
 					bullets[i].draw(ctx);
@@ -707,11 +670,10 @@
 				ctx.fillStyle = "rgb(0, 150, 150)";
 				ctx.fillText("Weapon: " + baseGun.weapon, canvas.width * 3 / 20, canvas.height * 2 / 20);
 				ctx.fillStyle = "rgb(250, 250, 250)";
-				ctx.fillText("Level: " + parseInt(enemyCounter / 10), canvas.width / 20, canvas.height * 3 / 20);
+				ctx.fillText("Level: " + parseInt(diffMod), canvas.width / 20, canvas.height * 3 / 20);
 				if (cooldown > 0)
 					cooldown--;
 			}
-		}
 
 		function LMB(){
 			if (!gameInProgress) {
