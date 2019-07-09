@@ -5,6 +5,11 @@
 	<script type="text/javascript">
 		var canvas, ctx, idUpdate, idBulletsMove, bullets, enemies, score, diffScoreMod, lives, gamerName, diffMod, cooldown, bigEnemyDelay, enemyCounter;
 		var cooldownReduction;
+		var airEnemyImg = new Image();
+		airEnemyImg.src = "coin.png";
+		var landEnemyImg = new Image();
+		landEnemyImg.src = "dollar.png";
+
 		var gameInProgress = false;
 		//сила гравитации
 		var G = 1;
@@ -15,7 +20,6 @@
 		function getRandomFloatInRange(min, max) {
 			return Math.random() * (max - min + 1) + min;
 		}
-
 		function findFi (bX, bY, x, y) {
 			let x1 = x;
 			let y1 = bY;
@@ -23,7 +27,6 @@
 			let c = Math.sqrt(Math.pow(bX - x1, 2) + Math.pow(bY - y1, 2));
 			return Math.atan(a / c);
 		}
-
 		function checkAngle(angle) {
 			let fi = angle;
 			if (fi < 0)
@@ -32,6 +35,7 @@
 				fi = fi - 2 * Math.PI;
 			return fi;
 		}
+
 
 		class TFigure {
 			constructor(pX, pY, dir) {
@@ -50,22 +54,24 @@
 				this.gSpeed = G;
 				this.damage = 0;
 				this.hp = 0;
+				this.img;
 			}
-
+			setImage(adress) {
+				var img = new Image();
+				img.src = adress;
+				this.img = img;
+			}
 			enableGravity (gM) {
 				this.gravityTrigger = true;
 				this.gMod = gM;
 			}
-
 			hit (damage) {
 				this.hp -= damage;
 				if (this.hp <= 0)
 					return true
 				else return false
 			}
-
 			changeCoordinates() {
-
 				this.posX = this.posX + this.speed * Math.cos(this.direction);
 				this.posY = this.posY - this.speed * Math.sin(this.direction);
 				this.speed = this.speed + this.accelleration;
@@ -78,27 +84,36 @@
 					this.gSpeed += G;
 				}
 			}
-		}
 
+			draw(h, w) {
+				if (this.img != undefined){
+					ctx.drawImage(this.img, this.posX - w / 2, this.posY - h / 2, w, h);
+					return true;
+				}
+				else
+					return false;
+			}
+
+		}
 		class TBall extends TFigure {
 			constructor(pX, pY, dir, r) {
 				super(pX, pY, dir);
 				this.r = r;
 				this.typeOfFig = "ball";
 			}
-
 			draw (ctx) {
-				ctx.fillStyle = this.col;
-				ctx.strokeStyle = "rgb(0,0,0)";
-				ctx.beginPath();
-				ctx.arc(this.posX, this.posY, this.r, 0, 2*Math.PI, false);
-				ctx.closePath();
-				ctx.fill();
+				if (!super.draw(this.r * 2, this.r * 2)) {
+					ctx.fillStyle = this.col;
+					ctx.strokeStyle = "rgb(0,0,0)";
+					ctx.beginPath();
+					ctx.arc(this.posX, this.posY, this.r, 0, 2*Math.PI, false);
+					ctx.closePath();
+					ctx.fill();
+				}
+				
 			}
-
 			
 		}
-
 		class TRec extends TFigure {
 			constructor(pX, pY, dir, height, width) {
 				super(pX, pY, dir);
@@ -108,54 +123,41 @@
 				
 				this.a = Math.sqrt(Math.pow(pX - (pX + this.w / 2), 2) + Math.pow(pY - (pY + this.h / 2), 2));
 				this.fi = findFi(pX, pY, pX + this.w / 2, pY + this.h / 2);
-
 				this.x1 = pX + this.a * Math.cos(this.direction + this.fi);
 				this.y1 = pY - this.a * Math.sin(this.direction + this.fi);
-
 				this.x2 = pX + this.a * Math.cos(this.direction - this.fi);
 				this.y2 = pY - this.a * Math.sin(this.direction - this.fi);
-
-
 				this.x3 = pX + this.a * Math.cos(this.direction + this.fi + Math.PI);
 				this.y3 = pY - this.a * Math.sin(this.direction + this.fi + Math.PI);
-
 				this.x4 = pX + this.a * Math.cos(this.direction - this.fi + Math.PI);
 				this.y4 = pY - this.a * Math.sin(this.direction - this.fi + Math.PI);
-
 			}
-
 			changeCoordinates() {
 				super.changeCoordinates();
-
 				this.x1 = this.posX + this.a * Math.cos(this.direction + this.fi);
 				this.y1 = this.posY - this.a * Math.sin(this.direction + this.fi);
-
 				this.x2 = this.posX + this.a * Math.cos(this.direction - this.fi);
 				this.y2 = this.posY - this.a * Math.sin(this.direction - this.fi);
-
 				this.x3 = this.posX + this.a * Math.cos(this.direction + this.fi + Math.PI);
 				this.y3 = this.posY - this.a * Math.sin(this.direction + this.fi + Math.PI);
-
 				this.x4 = this.posX + this.a * Math.cos(this.direction - this.fi + Math.PI);
 				this.y4 = this.posY - this.a * Math.sin(this.direction - this.fi + Math.PI);
-
-
 			}
-
 			draw(ctx){
-				ctx.fillStyle = this.col;
-				ctx.strokeStyle = "rgb(0,0,0)";
-				ctx.beginPath();
-				ctx.moveTo(this.x1, this.y1);
-				ctx.lineTo(this.x2, this.y2);
-				ctx.lineTo(this.x3, this.y3);
-				ctx.lineTo(this.x4, this.y4);
-				ctx.lineTo(this.x1, this.y1);
-				ctx.fill();
-				ctx.closePath();
+				if (!super.draw(this.w, this.h)) {
+					ctx.fillStyle = this.col;
+					ctx.strokeStyle = "rgb(0,0,0)";
+					ctx.beginPath();
+					ctx.moveTo(this.x1, this.y1);
+					ctx.lineTo(this.x2, this.y2);
+					ctx.lineTo(this.x3, this.y3);
+					ctx.lineTo(this.x4, this.y4);
+					ctx.lineTo(this.x1, this.y1);
+					ctx.fill();
+					ctx.closePath();
+				}
 			}
 		}
-
 		class TTri extends TFigure {
 			constructor(pX, pY, dir, r) {
 				super(pX, pY, dir);
@@ -171,7 +173,6 @@
 				this.x3 = pX + this.r * Math.cos(this.fi + (4 * Math.PI / 3));
 				this.y3 = pY - this.r * Math.sin(this.fi + (4 * Math.PI / 3));
 			}
-
 			changeCoordinates() {
 				super.changeCoordinates();
 				this.fi = this.fi + this.rotSpeed;
@@ -182,7 +183,6 @@
 				this.x3 = this.posX + this.r * Math.cos(this.fi + (4 * Math.PI / 3));
 				this.y3 = this.posY - this.r * Math.sin(this.fi + (4 * Math.PI / 3));
 			}
-
 			draw() {
 				ctx.fillStyle = this.col;
 				ctx.strokeStyle = "rgb(0,0,0)";
@@ -193,11 +193,8 @@
 				ctx.lineTo(this.x1, this.y1);
 				ctx.fill();
 				ctx.closePath();
-
 			}
 		}
-
-
 		class TGun {
 			constructor(pbX, pbY, r, fi) {
 				this.baseX = pbX;
@@ -276,14 +273,12 @@
 					this.weapon = "bullet";
 			}
 		}
-
 		function f_clPoint_point_line(pX, pY, x0, y0, x1, y1) {
 			let answer = (y0 - y1) * pX + (x1 - x0) * pY;
 			answer += (x0 * y1 - x1 * y0);
 			answer = answer / (Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2))); 
 			return answer;
 		}
-
 		// функция для пересечения линий
 		function area (x1, y1, x2, y2, x3, y3) {
 			return (x2 - x1) * (y2 - y1) - (y2 - y1) * (x3 - x1);
@@ -310,7 +305,6 @@
 				&& Math.round(area(x1, y1, x2, y2, x3, y3)) * Math.round(area(x1, y1, x2, y2 , x4, y4)) <= 0
 				&& area(x3, y3, x4, y4, x1, y1) * area(x3, y3, x4, y4, x2, y2) <= 0;
 		}
-
 		function checkColl_ball_ball (ball1, ball2) {
 			if (Math.sqrt(Math.pow(ball1.posX - ball2.posX, 2) + Math.pow(ball1.posY - ball2.posY, 2)) <= (ball1.r + ball2.r)){
 				return true;
@@ -319,7 +313,6 @@
 				return false;
 			} 
 		}
-
 		function checkColl_ball_rect (ball, rect) {
 			// нахождение расстояния от центра шара до сторон прямоугольника
 			let a1 = f_clPoint_point_line(ball.posX, ball.posY, rect.x1, rect.y1, rect.x2, rect.y2);
@@ -333,7 +326,6 @@
 			}
 			else return false;
 		}
-
 		function checkColl_ball_tri (ball, tri) {
 			let a1 = f_clPoint_point_line(ball.posX, ball.posY, tri.x1, tri.y1, tri.x2, tri.y2);
 			let a2 = f_clPoint_point_line(ball.posX, ball.posY,  tri.x2, tri.y2, tri.x3, tri.y3);
@@ -344,7 +336,6 @@
 			}
 			else return false;
 		}
-
 		function checkColl_rect_line (rect, x1, y1, x2, y2) {
 			if (checkColl_line_line(rect.x1, rect.y1, rect.x2, rect.y2, x1, y1, x2, y2)){
 				return true;
@@ -360,7 +351,6 @@
 			}
 			else return false;
 		}
-
 		function checkColl_rect_tri (rect, tri) {
 			if (checkColl_rect_line(rect, tri.x1, tri.y1, tri.x2, tri.y2)){
 				return true;
@@ -373,7 +363,6 @@
 			}
 			else return false;
 		}
-
 		function checkColl_tri_line (tri, x1, y1, x2, y2) {
 			if (checkColl_line_line(tri.x1, tri.y1, tri.x2, tri.y2, x1, y1, x2, y2)){
 				return true;
@@ -386,7 +375,6 @@
 			}
 			else return false;
 		}
-
 		function checkColl_tri_tri (tri1, tri2) {
 			if (checkColl_tri_line(tri1, tri2.x1, tri2.y1, tri2.x2, tri2.y2)){
 				return true;
@@ -399,7 +387,6 @@
 			}
 			else return false;
 		}
-
 		function checkColl_rect_line (rect, x1, y1, x2, y2) {
 			if (checkColl_line_line(rect.x1, rect.y1, rect.x2, rect.y2, x1, y1, x2, y2)){
 				return true;
@@ -415,7 +402,6 @@
 			}
 			else return false;
 		}
-
 		function checkColl_rect_rect (rect1, rect2) {
 			if (checkColl_rect_line(rect1, rect2.x1, rect2.y1, rect2.x2, rect2.y2)){
 				return true;
@@ -431,10 +417,8 @@
 			}
 			else return false;
 		}
-
 		function check_collusion(item1, item2) {
 			let check;
-
 			if (item1.typeOfFig == "ball") {
 				if (item2.typeOfFig == "ball") {
 					check = checkColl_ball_ball(item1, item2);
@@ -446,7 +430,6 @@
 					check = checkColl_ball_tri(item1, item2);
 				}
 			}
-
 			if (item1.typeOfFig == "rectangle") {
 				if (item2.typeOfFig == "ball") {
 					check = checkColl_ball_rect(item2, item1);
@@ -458,7 +441,6 @@
 					check = checkColl_rect_tri(item1, item2);
 				}
 			}
-
 			if (item1.typeOfFig == "triangle") {
 				if (item2.typeOfFig == "ball") {
 					check = checkColl_ball_tri(item2, item1);
@@ -472,7 +454,6 @@
 			}
 			return check;
 		}
-
 		function drawBack(ctx,col1,col2,w,h){
 			// закрашиваем канвас градиентным фоном
 			ctx.save();
@@ -483,19 +464,18 @@
 			ctx.fillRect(0,0,w,h);
 			ctx.restore();
 		}
-
 		//база и пушка
 		var base, baseGun;
-
 		//скорость спавна врагов
 		var enemySpawnTimeAir, enemySpawnTimeLand;
 		//время до спавна врагов
 		var enemySpawnTimeAirDelay, enemySpawnTimeLandDelay;
-
 		function init(){
 			canvas = document.getElementById('canvas');
 			if (canvas.getContext){
+				
 				ctx = canvas.getContext('2d');
+
 				//рисуем фон
 				drawBack(ctx,'#202020','#aaa',canvas.width,canvas.height);
 				//рисуем базу и пушку
@@ -534,22 +514,21 @@
 				cooldownReduction = 2;
 			}
 		}
-
 		function spawnAirEnemy() {
-			var enemy = new TBall(canvas.width - 5, getRandomFloatInRange(30, canvas.height / 2), Math.PI, getRandomInRange(25,40) / (diffMod / 5));
+			let enemy = new TBall(canvas.width - 5, getRandomFloatInRange(30, canvas.height / 2), Math.PI, getRandomInRange(25,40) / (diffMod / 5));
 			enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod / 5;
 			enemy.col = "rgb(255, 0, 0)";
+			enemy.img = airEnemyImg;
 			return enemy;
 		}
-
 		function spawnLandEnemy() {
 			let h = getRandomInRange(30,50) / (diffMod / 5);
-			var enemy = new TRec(canvas.width - 5, canvas.height - h / 2 - 1, Math.PI, h, getRandomInRange(30,50) / (diffMod / 5));
+			let enemy = new TRec(canvas.width - 5, canvas.height - h / 2 - 1, Math.PI, h, getRandomInRange(30,50) / (diffMod / 5));
 			enemy.speed = getRandomFloatInRange(0.1, 0.5) * diffMod / 5;
 			enemy.col = "rgb(255, 0, 0)";
+			enemy.img = landEnemyImg;
 			return enemy;
 		}
-
 		function spawnBigEnemy() {
 			let r = getRandomInRange(0, 1);
 			let enemy;
@@ -567,7 +546,6 @@
 			enemy.hp = diffMod;
 			return enemy;
 		}
-
 		function gameOwer() {
 			clearInterval(idUpdate);
 			let i = 0;
@@ -578,13 +556,11 @@
 			if (i < 6) {
 				players[i][0] = gamerName;
 				players[i][1] = parseInt(score);
-
 			}
 			init();
 		}
-
-
 		function update() {
+			
 			drawBack(ctx,'#202020','#aaa',canvas.width,canvas.height);
 			baseGun.draw(ctx);
 			base.draw(ctx);
@@ -665,14 +641,13 @@
 				for (let i = 0; i < bullets.length; i++) {
 					bullets[i].draw(ctx);
 				}
-
 				ctx.font = "15pt Arial";
 				ctx.fillStyle = "rgb(50, 50, 250)";
 				ctx.fillText("Score: " + parseInt(score), canvas.width / 20, canvas.height  / 20);
 				ctx.fillStyle = "rgb(250, 50, 50)";
 				ctx.fillText("Lives: " + lives, canvas.width / 20, canvas.height * 2 / 20);
 				ctx.fillStyle = "rgb(50, 250, 50)";
-				ctx.fillText("Cooldown: " + cooldown / 40, canvas.width * 3 / 20, canvas.height / 20);
+				ctx.fillText("Cooldown: " + (cooldown / 40).toPrecision(3), canvas.width * 3 / 20, canvas.height / 20);
 				ctx.fillStyle = "rgb(0, 250, 250)";
 				ctx.fillText("Weapon Level: " + cooldownReduction / 2, canvas.width * 3 / 20, canvas.height * 2 / 20);
 				ctx.fillStyle = "rgb(0, 150, 150)";
@@ -684,9 +659,7 @@
 					if (cooldown < 0)
 						cooldown = 0;
 				}
-
 			}
-
 		function LMB(){
 			if (!gameInProgress) {
 				gameInProgress = true;
@@ -705,7 +678,6 @@
 			gamerName = prompt("Введите имя игрока", "Gamer");
 			init();
 		}
-
 		function pause() {
 			if (gameInProgress) {
 				gameInProgress = false;
@@ -726,8 +698,6 @@
 				gamerName = prompt("Введите имя игрока", "Gamer");
 			}
 		}
-
-
 	</script>
 	<style type="text/css">
 		canvas { border: 1px solid blue; }
